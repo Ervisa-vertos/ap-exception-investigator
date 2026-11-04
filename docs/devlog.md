@@ -41,3 +41,29 @@ Next steps: WAIT_FOR_RECEIPT
   tools: triage.get_invoice → get_invoice → get_matching_details → find_similar_invoices → get_vendor → get_vendor_change_log → get_vendor_messages → search_policy  |  review rounds: 0
 
   action release_hold: NOT EXECUTED — User 'cem' with role(s) ['AP.Clerk'] may not 'release_hold' (requires: AP.Manager)
+
+## 2026-11-04 — Step 2, Part A
+
+A1. When is a bank-account change a reason to block payment, and when not?
+...It blocks payment only when both conditions are true: the change was made in the last 30 days, and it was not verified by a callback (§2.1). A change older than 30 days, or one confirmed by calling the vendor on a number already on file, isn’t a reason to block by itself (§2.4).
+
+A2.1 Why is BANK_ACCOUNT_CHANGE first in CAUSE_PRIORITY?
+...Because it’s the only cause where a mistake can’t be undone. A quantity or price problem can be fixed later with a credit note. Money paid to a fraudster’s account is usually gone. It also makes the other causes irrelevant: there’s no point fixing the price on an invoice if the payment would go to the wrong account. So fraud review comes first, and everything else waits.
+
+A2.2 One acceptable and one forbidden next step for BANK_ACCOUNT_CHANGE:
+...Acceptable: ESCALATE_FRAUD_REVIEW
+Forbidden: RELEASE_HOLD
+
+A4.1 What does add_case() record, and why is the right answer written while the data is created?
+...For each test case it records:
+
+the invoice ID and the question a user would ask (picked from a few phrasings)
+the correct root causes, in priority order, and the main one
+the records the agent must retrieve (for example the invoice, the vendor and the change-log entry)
+the policy sections it must cite
+the acceptable next steps
+
+The answer is written at the same moment the data is created because that’s the only time it’s known for certain: the generator made the problem, so it knows exactly what’s wrong. That gives you an exact answer key for the evals, with no need to label anything by hand afterwards.
+
+A4.2 Why include a "hard negative" case?
+...To catch an agent that’s too suspicious. Without it, an agent that shouted “fraud!” at every bank change would score perfectly. The hard negative is an old, verified bank change on an invoice that’s fine. The agent passes only if it correctly says there’s no problem. It tests that the agent applies the actual rule (30 days and unverified), not just a keyword.
