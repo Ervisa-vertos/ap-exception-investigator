@@ -8,7 +8,7 @@ from ap_investigator.tools import READ_TOOLS, get_invoice, get_matching_details
 def test_tools_are_read_only():
     names = {t.name for t in READ_TOOLS}
     assert not names & {"release_hold", "request_credit_note", "set_invoice_released"}
-    assert all(n.startswith(("get_", "find_")) for n in names)
+    assert all(n.startswith(("get_", "find_", "search_")) for n in names)
 
 
 def test_every_tool_describes_itself_to_the_model():
