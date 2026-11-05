@@ -110,3 +110,14 @@ use them, to check the agent. The agent never sees them; it must reach conclusio
  The Investigator only has read-only tools because its job is to investigate invoices and explain problems, not to make changes in the ERP. I want to keep the AI responsible for analysing the data, while any actual action goes through the Action Gate, where it can be validated before execution.
 If the model sends a malformed invoice ID, the tool layer should catch it through input validation before making a database query. If the ID is valid but the invoice doesn't exist, it returns a `RecordNotFoundError`. If the ERP is unavailable, it returns an `ERPUnavailableError`.
 The agent should handle each case differently: ask the user to check an invalid ID, explain when an invoice cannot be found, or suggest trying again later if the ERP is down. It should never guess or make up information.
+
+## Step 4: Policy search
+4.1 why is each policy section a separate chunk?
+
+I split each policy into separate sections so the agent can find and cite the exact rule it used, rather than just referring to the whole document. For example, it can cite `AP-POL-03 §2.1` instead of saying the information came from `AP-POL-03` somewhere.
+
+It also makes search more accurate. Each section focuses on a specific topic, so the agent is less likely to get unrelated information mixed in. Instead of loading an entire policy, it only gets the most relevant sections, which keeps the context smaller and reduces token usage.
+
+Having a separate ID for each section also makes it easier for the Reviewer and evals to check whether the agent retrieved and cited the correct source.
+
+The main trade-off is that a section might not include all the context from the rest of the policy. But in this case, the sections are written to be understandable on their own, so that works well for what we need.
