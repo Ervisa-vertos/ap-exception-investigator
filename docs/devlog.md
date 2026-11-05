@@ -121,3 +121,8 @@ It also makes search more accurate. Each section focuses on a specific topic, so
 Having a separate ID for each section also makes it easier for the Reviewer and evals to check whether the agent retrieved and cited the correct source.
 
 The main trade-off is that a section might not include all the context from the rest of the policy. But in this case, the sections are written to be understandable on their own, so that works well for what we need.
+
+
+4.4: the “supplier switched their IBAN” result, and how you’d fix it
+
+Keyword search matches words, not meaning. This is why Azure AI Search offers vector search (it matches meaning, so “supplier” finds “vendor”) and hybrid search (keywords plus vectors). You’ll switch to it in Step 12, and this script lets you compare before and after.
