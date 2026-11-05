@@ -18,6 +18,7 @@ from pydantic import Field
 from agent_framework import tool
 
 from .erp import repo
+from .retrieval.policy_index import policy_index
 
 InvoiceId = Annotated[str, Field(description="Internal invoice ID, e.g. INV-1001", pattern=r"^INV-\d{4}$")]
 PoId = Annotated[str, Field(description="Purchase order ID, e.g. PO-000123", pattern=r"^PO-\d{6}$")]
@@ -75,8 +76,15 @@ def get_vendor_messages(invoice_id: InvoiceId) -> dict:
     return repo.get_vendor_messages(invoice_id)
 
 
-# search_policy is added in Step 4, together with the policy index.
+@tool(max_invocation_exceptions=_MAX_ERRORS)
+def search_policy(
+    query: Annotated[str, Field(min_length=3, description="What you need the policy for, in plain words")],
+) -> dict:
+    """Search the company AP policies and SOPs. Returns the top sections; cite them by section_id."""
+    return {"query": query, "results": policy_index().search(query, top=3)}
+
+
 READ_TOOLS = [
     get_invoice, get_purchase_order, get_goods_receipts, get_matching_details, find_similar_invoices,
-    get_vendor, get_vendor_change_log, get_vendor_messages,
+    get_vendor, get_vendor_change_log, get_vendor_messages, search_policy,
 ]
