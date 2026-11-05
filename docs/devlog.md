@@ -87,4 +87,20 @@ The fixed date stops the data from changing over time. The bank-change rule depe
 
 Together they mean a result you measure today can be reproduced next month, by you or by anyone who clones your repo. So when a score changes, you know it’s because the agent changed, not the data.
 
-Next step: Step 3 — ERP repository and read-only tools.
+## 2026-11-05 — Step 3.1: ERP repository
+
+3.1 Why does the repository return facts instead of verdicts?
+
+The repository should return facts rather than verdicts because the responsibility for interpreting business data belongs to the AI agent, not the database layer.
+For example, the repository might retrieve that 80 units were received, 100 were invoiced, and the variance is +10%. It should provide these values without deciding that this is a quantity mismatch.
+This separation is important for several reasons:
+
+* Separation of responsibilities: The repository retrieves reliable ERP data, while the agent interprets the information and determines what it means in the business context.
+* Better testability: We can test whether the agent correctly identifies discrepancies and reaches conclusions based on the retrieved evidence, rather than simply repeating a conclusion already made by the repository.
+* Traceability: Every conclusion should be supported by records the repository actually retrieved.
+* Flexibility: Different business rules or policies can interpret the same facts differently without changing the database access layer.
+
+Ultimately, I want the agent to reason from evidence rather than inherit assumptions from the repository. This makes the system more transparent, testable and reliable, especially in financial processes where incorrect conclusions can lead to incorrect business actions.
+
+Note: facts.py does compute verdicts in code, but only the Reviewer and the action gate
+use them, to check the agent. The agent never sees them; it must reach conclusions from facts.
