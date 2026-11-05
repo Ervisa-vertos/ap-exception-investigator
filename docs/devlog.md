@@ -104,3 +104,9 @@ Ultimately, I want the agent to reason from evidence rather than inherit assumpt
 
 Note: facts.py does compute verdicts in code, but only the Reviewer and the action gate
 use them, to check the agent. The agent never sees them; it must reach conclusions from facts.
+
+3.6 Why does the Investigator only get read-only tools, and what happens if the model sends a malformed invoice ID?
+
+ The Investigator only has read-only tools because its job is to investigate invoices and explain problems, not to make changes in the ERP. I want to keep the AI responsible for analysing the data, while any actual action goes through the Action Gate, where it can be validated before execution.
+If the model sends a malformed invoice ID, the tool layer should catch it through input validation before making a database query. If the ID is valid but the invoice doesn't exist, it returns a `RecordNotFoundError`. If the ERP is unavailable, it returns an `ERPUnavailableError`.
+The agent should handle each case differently: ask the user to check an invalid ID, explain when an invoice cannot be found, or suggest trying again later if the ERP is down. It should never guess or make up information.
