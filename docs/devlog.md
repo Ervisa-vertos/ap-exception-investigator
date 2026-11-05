@@ -67,3 +67,24 @@ The answer is written at the same moment the data is created because that’s th
 
 A4.2 Why include a "hard negative" case?
 ...To catch an agent that’s too suspicious. Without it, an agent that shouted “fraud!” at every bank change would score perfectly. The hard negative is an old, verified bank change on an invoice that’s fine. The agent passes only if it correctly says there’s no problem. It tests that the agent applies the actual rule (30 days and unverified), not just a keyword.
+
+## 2026-11-05 — Step 2 done
+Did: copied policies, domain model, schema and generator into my repo; wrote D365 mapping;
+3 tests pass; broke the policy-sync test on purpose and fixed it.
+
+B1. Why are root causes and next steps closed lists (enums) instead of free text?
+
+...So the answers can be checked automatically. If the agent could write anything, one run might say “bank details changed”, another “possible payment fraud”, another “vendor IBAN updated”. All mean the same thing, but code can’t reliably compare them, so you’d need a person, or another AI, to judge every answer. With a fixed list, the agent must answer exactly BANK_ACCOUNT_CHANGE, and the eval simply checks whether it equals the expected value.
+
+Closed lists also block invented categories: an answer outside the list is rejected automatically. The free-text summary is still there for humans to read; the codes are what gets measured.
+
+B2. Why does the generator use a fixed seed and a fixed "today" date (AS_OF = 2026-11-02)?
+
+...So the data is exactly the same every time it’s generated.
+
+The seed makes the “random” choices (vendors, amounts, which days) repeat identically. Your test proves this: two runs give byte-for-byte the same file.
+The fixed date stops the data from changing over time. The bank-change rule depends on “within the last 30 days”. If the generator used the real date, a change made “12 days ago” today would be 42 days old next month. It would no longer count as fraud, and the expected answers would silently become wrong.
+
+Together they mean a result you measure today can be reproduced next month, by you or by anyone who clones your repo. So when a score changes, you know it’s because the agent changed, not the data.
+
+Next step: Step 3 — ERP repository and read-only tools.
