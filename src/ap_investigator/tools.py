@@ -20,9 +20,9 @@ from agent_framework import tool
 from .erp import repo
 from .retrieval.policy_index import policy_index
 
-InvoiceId = Annotated[str, Field(description="Internal invoice ID, e.g. INV-1001", pattern=r"^INV-\d{4}$")]
-PoId = Annotated[str, Field(description="Purchase order ID, e.g. PO-000123", pattern=r"^PO-\d{6}$")]
-VendorId = Annotated[str, Field(description="Vendor ID, e.g. V-1020", pattern=r"^V-\d{4}$")]
+InvoiceId = Annotated[str, Field(description="Internal invoice ID (format INV-NNNN), as given by the user", pattern=r"^INV-\d{4}$")]
+PoId = Annotated[str, Field(description="Purchase order ID (format PO-NNNNNN). Take it from get_invoice; never guess", pattern=r"^PO-\d{6}$")]
+VendorId = Annotated[str, Field(description="Vendor ID (format V-NNNN). Take it from get_invoice; never guess", pattern=r"^V-\d{4}$")]
 
 _MAX_ERRORS = 3  # stop a confused model from calling a failing tool forever
 

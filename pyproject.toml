@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "AI agent that answers 'Why is this invoice on hold?' — grounded in ERP records and AP policy."
 requires-python = ">=3.10"
 dependencies = [
-    "agent-framework-core>=1.22",
+     "agent-framework-core>=1.22",
+    "agent-framework-foundry>=1.16",
+    "azure-identity>=1.17",
     "pydantic>=2.7",
     "python-dotenv>=1.0",
 ]
