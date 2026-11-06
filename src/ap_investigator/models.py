@@ -44,7 +44,7 @@ class ReviewIssue(BaseModel):
     kind: Literal[
         "evidence_not_retrieved", "citation_not_retrieved", "unknown_citation", "missing_citation",
         "unsupported_root_cause", "missed_critical_cause", "forbidden_next_step", "priority_violation",
-        "unacceptable_next_step", "action_from_untrusted_text", "unsupported_statement", "malformed_output",
+        "unacceptable_next_step", "quote_not_in_section", "action_from_untrusted_text", "unsupported_statement", "malformed_output",
     ]
     detail: str
 
