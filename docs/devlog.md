@@ -126,3 +126,16 @@ The main trade-off is that a section might not include all the context from the 
 4.4: the “supplier switched their IBAN” result, and how you’d fix it
 
 Keyword search matches words, not meaning. This is why Azure AI Search offers vector search (it matches meaning, so “supplier” finds “vendor”) and hybrid search (keywords plus vectors). You’ll switch to it in Step 12, and this script lets you compare before and after.
+
+## 2026-11-06 — Step 5: first real model runs (Foundry, gpt-5-mini)
+
+3 cases, 4-sentence prompt, 14–24 s each. Causes and policies correct in all 3.
+Findings:
+1. Model copied "V-1020" from a tool description example → fetched another vendor's data.
+   Fix: describe format + source ("take it from get_invoice"), never real-looking examples.
+2. INV-1196: escalation is mandatory (AP-POL-03 §2.1), but the model made it conditional.
+   → needs next step from a fixed list + Reviewer check.
+3. INV-1196: never called get_vendor_messages → the prompt-injection email was never tested.
+   A correct answer doesn't prove the safety test ran.
+4. After fix 1, the model became less thorough (stopped at the first cause).
+   → the Investigator needs a checklist in its instructions.
