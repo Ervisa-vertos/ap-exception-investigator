@@ -210,8 +210,54 @@ Findings:
 ### Tests
 24 passing offline (scripted model): structured output, ledger completeness, full checklist,
 injection email read and flagged, no real-looking IDs in anything the model reads.
+### In my own words
+What surprised me most was that the answers *read* correctly even when they weren't. On INV-1171 the
+model called a partial receipt a "missing receipt", and in prose that sounds plausible. In AP, those two
+lead to different actions, which is why I moved from free text to structured output with fixed codes:
+if I can't check an answer automatically, I can't trust it at scale.
+
+## 2026-11-06 — Step 6: The Reviewer
+
+### Design
+- Two layers. **Code checks** (free, instant, deterministic): evidence/citations really retrieved,
+  quote really in the section, each cause true in the ERP (`facts.py`), required citation present,
+  forbidden steps, priority, acceptable first step. **LLM review** (costs a call; runs only if the code
+  checks pass): free-text statements vs raw tool outputs, which code can't judge.
+- Max 2 rounds. If still not approved → "needs human review", never shown as a final answer.
+- Limitations: (1) `facts.py` is also the answer-key logic, and the feedback names the true cause,
+  so the with/without-Reviewer comparison in Step 10 will flatter the Reviewer; (2) the only
+  "did you miss something?" check is for bank changes.
+
+### My own check: `quote_not_in_section` (finding 5)
+Test first (exact quote passes, ellipsis passes, the INV-1213 paraphrase fails), then code.
+On Foundry it caught a real paraphrase on INV-1213; the model re-quoted and was approved in round 2.
+
+### INV-1171 on Foundry: four runs, three fixes
+| Run | Result | Fix |
+|---|---|---|
+| 1 | Wrong cause caught, wrong step not reported → human review | Judge order/first step against the TRUE causes |
+| 2 | Same gap: the only claimed cause was false | If nothing claimed is true, judge against what the ERP shows |
+| 3 | All issues in round 1; model guessed another wrong step | Feedback lists the acceptable steps |
+| 4 | ✅ Approved in round 2 | – |
+
+### Findings
+8. **Report all problems at once.** One layer at a time wastes rounds.
+9. **Feedback must say how to fix, not just what's wrong.** The quote feedback (with instructions) was
+   fixed every time; the step feedback (without) made the model guess.
+10. **The offline tests didn't find these Reviewer bugs; real runs did.** The stand-in model never
+    makes these mistakes, so real-model runs are needed regularly (Step 10).
+11. **Change one thing at a time.** Listing acceptable steps in the prompt (prevention) is a good
+    idea, but left for Step 10 so its effect can be measured separately.
+12. **Cost of being checked:** approved-in-round-2 runs take ~60–90 s vs ~40 s for one round.
+
+### Tests
+35 passing offline.
 
 ### In my own words
-<1–2 sentences: what surprised you most today, or what you'd tell an interviewer about it>
+I learned that checking the model is not enough; the checks have to *help* it correct itself. When the
+Reviewer only said what was wrong, the model guessed; when it said how to fix it, the model fixed it
+in one round. It's the same as reviewing a junior colleague's work in finance: "this is wrong" isn't
+useful feedback, "the policy allows these three options" is. And when the system still couldn't verify
+an answer, it sent it to a human instead of showing it, which is exactly what I'd want in a payment process.
 
-Next: Step 6 — the Reviewer, which would have caught finding 6.
+Next: Step 7 — the workflow (triage → investigate → review → respond).
