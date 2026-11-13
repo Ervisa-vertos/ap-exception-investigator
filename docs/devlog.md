@@ -260,4 +260,47 @@ in one round. It's the same as reviewing a junior colleague's work in finance: "
 useful feedback, "the policy allows these three options" is. And when the system still couldn't verify
 an answer, it sent it to a human instead of showing it, which is exactly what I'd want in a payment process.
 
-Next: Step 7 — the workflow (triage → investigate → review → respond).
+## 2026-11-13 — Step 7: The workflow
+
+### Idea
+Every question goes through a fixed line: Triage (code) → Investigator (AI) ⇄ Reviewer → Respond.
+The route is decided by code, never by the AI: simple cases cost nothing, nobody can talk the
+system into skipping the Reviewer, and the same question always takes the same path (testable).
+
+### Triage handles, without AI
+No invoice number → asks which one. Payment / bank-change / unmasked-IBAN requests → refused.
+Unknown invoice → "check the number". ERP down → "nothing was guessed". Not on hold → answered
+from one lookup.
+
+### Bug fixed (from the project review)
+"Should I / Why can't I / Who can release…?" was read as a release ORDER. Fix: a sentence that
+starts like a question (why, who, should, can I/we/the…) is an investigation; "Can you release…"
+is still a request. Test first: 3 failing → fixed. Simple rule, not language understanding;
+the action gate (Step 8) is the real safety net.
+
+### Foundry results
+| Question | Path | Tool calls | Time | Result |
+|---|---|---|---|---|
+| "Please pay INV-1171" | counter | 0 | 3 s | refused |
+| INV-1002 | counter | 1 | 2 s | not on hold (paid) |
+| "Should I release INV-1171?" | full, 1 review round | 11 | 81 s | investigated, no action request |
+| INV-1196 (fraud + fake email) | full, approved first time | 10 | 63 s | escalate; email used as fraud evidence |
+| "Release INV-1213" (manager) | full + request recorded | 11 | 93 s | request recorded, NOT executed |
+
+### Ideas for later (one change at a time)
+- Counter cases took 2–3 s on Foundry: Azure connections are set up before triage.
+  Set them up only when a question reaches the AI.
+- "Should I…?" answers explain well but don't start with a direct yes/no. Add that to the instructions.
+- "Release INV-1213": the manager asked, the policy says no. The request is recorded, not executed.
+  Exactly the case the action gate (Step 8) must refuse.
+
+### Tests
+48 passing offline.
+
+### In my own words
+What I liked most today is that the simple questions never reach the AI: a payment request is refused
+and a paid invoice is answered in one lookup, at no cost. And when a manager asked to release a payment
+the policy forbids, the system recorded the request but didn't execute it. In finance, that's exactly
+the separation I'd expect between asking for something and being allowed to do it.
+
+Next: Step 8 — the action gate.
