@@ -303,4 +303,45 @@ and a paid invoice is answered in one lookup, at no cost. And when a manager ask
 the policy forbids, the system recorded the request but didn't execute it. In finance, that's exactly
 the separation I'd expect between asking for something and being allowed to do it.
 
-Next: Step 8 — the action gate.
+## 2026-11-13 — Step 8: The action gate
+
+### Idea
+The only door through which anything changes in the ERP. The AI has no key: it can only recommend.
+Every check is code, in this order:
+1. Is the requester allowed? (security.PERMISSIONS: only AP.Manager may release)
+2. Does the invoice exist and is it on hold?
+3. Does the policy allow it right now? Re-checked against the ERP at the moment of release, not
+   taken from the investigation (AP-POL-08 §3.2: no release with an unverified bank change,
+   duplicate, vendor hold or failed e-invoice, even for a manager).
+4. Did a second, different person approve, and are they allowed to? (four-eyes, AP-POL-08 §3.1)
+5. Execute and write the audit log: who, role, approver, justification, time.
+Any failed check → nothing changes, and the reason is explained.
+
+### Bugs fixed (from the project review), test first
+- The approver was only a name: "random-intern" could approve a release. Now the approver is a
+  person with roles and must be allowed to do the action. Policy §3.1 updated to match:
+  "a second user with the AP Manager role".
+- The audit log recorded the first role alphabetically: a Manager+Auditor was logged as Auditor.
+  Now it records the role that actually granted the action.
+All three bugs from the review are now fixed, each with a test.
+
+### Demo on Foundry (scripts/demo.py)
+| Scene | Requester | Approver | Result |
+|---|---|---|---|
+| 1 | Clerk | – | ⛔ refused: role |
+| 2 | Manager, INV-1213 (bank change) | – | ⛔ refused: AP-POL-08 §3.2 |
+| 3 | Manager | intern (AP.Clerk) | ⛔ refused: approver not allowed |
+| 4 | Manager | tom (AP.Manager) | ✅ executed and audited |
+Note: INV-1171 (quantity mismatch) is not a "never release" cause. The policy leaves it to human
+judgment with four eyes, e.g. when the buyer agreed to pay for the received quantity.
+
+### Tests
+55 passing offline.
+
+### In my own words
+In D365, segregation of duties is something you configure in security roles. Here I had to build it
+myself, and the bugs showed how easy it is to get almost right: a four-eyes rule where the second pair
+of eyes could belong to anyone isn't a control at all. The AI investigates and explains; people with the
+right roles decide; code makes sure nobody skips a step.
+
+Next: Step 9 — prompt-injection defence and red-team cases.
